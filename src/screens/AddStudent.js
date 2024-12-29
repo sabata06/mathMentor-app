@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -11,55 +11,60 @@ import {
   Platform,
   ActivityIndicator,
   StatusBar,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+  NativeModules,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import DateTimePicker from "@react-native-community/datetimepicker";
+const deviceLanguage =
+  Platform.OS === "ios"
+    ? NativeModules.SettingsManager.settings.AppleLocale
+    : NativeModules.I18nManager?.localeIdentifier;
 
 const AddStudent = ({ navigation }) => {
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    surname: '',
-    parentName: '',
-    parentContact: '',
-    debtStatus: '',
-    lastTopic: '',
-    bookProgress: '',
-    lastLessonDate: '',
+    name: "",
+    surname: "",
+    parentName: "",
+    parentContact: "",
+    debtStatus: "",
+    lastTopic: "",
+    bookProgress: "",
+    lastLessonDate: new Date(),
   });
 
   const [loading, setLoading] = useState(false);
 
   const updateField = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const validateForm = () => {
-    const requiredFields = ['name', 'surname', 'parentName', 'parentContact'];
-    const missingFields = requiredFields.filter(field => !formData[field].trim());
-    
+    const requiredFields = ["name", "surname", "parentName", "parentContact"];
+    const missingFields = requiredFields.filter(
+      (field) => !formData[field].trim()
+    );
+
     if (missingFields.length > 0) {
-      Alert.alert('Uyarı', 'Lütfen zorunlu alanları doldurunuz.');
+      Alert.alert("Uyarı", "Lütfen zorunlu alanları doldurunuz.");
       return false;
     }
 
     if (formData.debtStatus && isNaN(Number(formData.debtStatus))) {
-      Alert.alert('Uyarı', 'Borç miktarı sayısal bir değer olmalıdır.');
-      return false;
-    }
-
-    if (formData.bookProgress && isNaN(Number(formData.bookProgress))) {
-      Alert.alert('Uyarı', 'Kitap ilerlemesi sayısal bir değer olmalıdır.');
-      return false;
-    }
-
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (formData.lastLessonDate && !dateRegex.test(formData.lastLessonDate)) {
-      Alert.alert('Uyarı', 'Tarih formatı YYYY-MM-DD şeklinde olmalıdır.');
+      Alert.alert("Uyarı", "Borç miktarı sayısal bir değer olmalıdır.");
       return false;
     }
 
     return true;
+  };
+
+  const handleDateChange = (event, selectedDate) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      setFormData((prev) => ({ ...prev, lastLessonDate: selectedDate }));
+    }
   };
 
   const handleAddStudent = async () => {
@@ -67,9 +72,9 @@ const AddStudent = ({ navigation }) => {
 
     setLoading(true);
     try {
-      const token = await AsyncStorage.getItem('accessToken');
+      const token = await AsyncStorage.getItem("accessToken");
       await axios.post(
-        'https://mathmentor-qnyk.onrender.com/api/students/',
+        "https://mathmentor-qnyk.onrender.com/api/students/",
         {
           name: formData.name.trim(),
           surname: formData.surname.trim(),
@@ -77,27 +82,27 @@ const AddStudent = ({ navigation }) => {
           parent_contact: formData.parentContact.trim(),
           debt_status: formData.debtStatus ? Number(formData.debtStatus) : 0,
           last_topic: formData.lastTopic.trim(),
-          book_progress: formData.bookProgress ? Number(formData.bookProgress) : 0,
-          last_lesson_date: formData.lastLessonDate,
+          book_progress: formData.bookProgress.toString(), // string olarak gönder
+          last_lesson_date: formData.lastLessonDate.toISOString().split("T")[0], // YYYY-MM-DD formatına çevir
         },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      Alert.alert('Başarılı', 'Öğrenci başarıyla eklendi.', [
-        { text: 'Tamam', onPress: () => navigation.navigate('StudentList') }
+      Alert.alert("Başarılı", "Öğrenci başarıyla eklendi.", [
+        { text: "Tamam", onPress: () => navigation.navigate("StudentList") },
       ]);
     } catch (error) {
-      Alert.alert('Hata', 'Öğrenci eklenirken bir hata oluştu.');
+      Alert.alert("Hata", "Öğrenci eklenirken bir hata oluştu.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
     >
       <StatusBar barStyle="light-content" backgroundColor="#6c63ff" />
@@ -111,29 +116,39 @@ const AddStudent = ({ navigation }) => {
         <Text style={styles.headerTitle}>Yeni Öğrenci</Text>
       </View>
 
-      <ScrollView 
+      <ScrollView
         style={styles.formContainer}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.inputGroup}>
           <Text style={styles.inputLabel}>Öğrenci Bilgileri</Text>
           <View style={styles.inputWrapper}>
-            <Ionicons name="person-outline" size={20} color="#6c63ff" style={styles.inputIcon} />
+            <Ionicons
+              name="person-outline"
+              size={20}
+              color="#6c63ff"
+              style={styles.inputIcon}
+            />
             <TextInput
               style={styles.input}
               placeholder="Öğrencinin Adı"
               value={formData.name}
-              onChangeText={(value) => updateField('name', value)}
+              onChangeText={(value) => updateField("name", value)}
               placeholderTextColor="#999"
             />
           </View>
           <View style={styles.inputWrapper}>
-            <Ionicons name="person-outline" size={20} color="#6c63ff" style={styles.inputIcon} />
+            <Ionicons
+              name="person-outline"
+              size={20}
+              color="#6c63ff"
+              style={styles.inputIcon}
+            />
             <TextInput
               style={styles.input}
               placeholder="Öğrencinin Soyadı"
               value={formData.surname}
-              onChangeText={(value) => updateField('surname', value)}
+              onChangeText={(value) => updateField("surname", value)}
               placeholderTextColor="#999"
             />
           </View>
@@ -142,22 +157,32 @@ const AddStudent = ({ navigation }) => {
         <View style={styles.inputGroup}>
           <Text style={styles.inputLabel}>Veli İletişim Bilgileri</Text>
           <View style={styles.inputWrapper}>
-            <Ionicons name="people-outline" size={20} color="#6c63ff" style={styles.inputIcon} />
+            <Ionicons
+              name="people-outline"
+              size={20}
+              color="#6c63ff"
+              style={styles.inputIcon}
+            />
             <TextInput
               style={styles.input}
               placeholder="Velinin Adı"
               value={formData.parentName}
-              onChangeText={(value) => updateField('parentName', value)}
+              onChangeText={(value) => updateField("parentName", value)}
               placeholderTextColor="#999"
             />
           </View>
           <View style={styles.inputWrapper}>
-            <Ionicons name="call-outline" size={20} color="#6c63ff" style={styles.inputIcon} />
+            <Ionicons
+              name="call-outline"
+              size={20}
+              color="#6c63ff"
+              style={styles.inputIcon}
+            />
             <TextInput
               style={styles.input}
               placeholder="Velinin Telefonu"
               value={formData.parentContact}
-              onChangeText={(value) => updateField('parentContact', value)}
+              onChangeText={(value) => updateField("parentContact", value)}
               keyboardType="phone-pad"
               placeholderTextColor="#999"
             />
@@ -167,47 +192,77 @@ const AddStudent = ({ navigation }) => {
         <View style={styles.inputGroup}>
           <Text style={styles.inputLabel}>Eğitim Takibi</Text>
           <View style={styles.inputWrapper}>
-            <Ionicons name="book-outline" size={20} color="#6c63ff" style={styles.inputIcon} />
+            <Ionicons
+              name="book-outline"
+              size={20}
+              color="#6c63ff"
+              style={styles.inputIcon}
+            />
             <TextInput
               style={styles.input}
               placeholder="Son İşlenen Konu"
               value={formData.lastTopic}
-              onChangeText={(value) => updateField('lastTopic', value)}
+              onChangeText={(value) => updateField("lastTopic", value)}
               placeholderTextColor="#999"
             />
           </View>
           <View style={styles.inputWrapper}>
-            <Ionicons name="documents-outline" size={20} color="#6c63ff" style={styles.inputIcon} />
+            <Ionicons
+              name="documents-outline"
+              size={20}
+              color="#6c63ff"
+              style={styles.inputIcon}
+            />
             <TextInput
               style={styles.input}
-              placeholder="Kitap İlerlemesi (Sayfa)"
+              placeholder="Kitap İlerlemesi"
               value={formData.bookProgress}
-              onChangeText={(value) => updateField('bookProgress', value)}
-            //   keyboardType="numeric"
+              onChangeText={(value) => updateField("bookProgress", value)}
               placeholderTextColor="#999"
             />
           </View>
           <View style={styles.inputWrapper}>
-            <Ionicons name="calendar-outline" size={20} color="#6c63ff" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Son Ders Tarihi (YYYY-MM-DD)"
-              value={formData.lastLessonDate}
-              onChangeText={(value) => updateField('lastLessonDate', value)}
-              placeholderTextColor="#999"
+            <Ionicons
+              name="calendar-outline"
+              size={20}
+              color="#6c63ff"
+              style={styles.inputIcon}
             />
+            <TouchableOpacity
+              style={[styles.input, styles.dateInput]}
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Text style={styles.dateText}>
+                {formData.lastLessonDate.toISOString().split("T")[0]}
+              </Text>
+            </TouchableOpacity>
           </View>
+
+          {showDatePicker && (
+            <DateTimePicker
+              value={formData.lastLessonDate}
+              mode="date"
+              display="default"
+              onChange={handleDateChange}
+              locale="tr-TR"
+            />
+          )}
         </View>
 
         <View style={styles.inputGroup}>
           <Text style={styles.inputLabel}>Ödeme Bilgileri</Text>
           <View style={styles.inputWrapper}>
-            <Ionicons name="cash-outline" size={20} color="#6c63ff" style={styles.inputIcon} />
+            <Ionicons
+              name="cash-outline"
+              size={20}
+              color="#6c63ff"
+              style={styles.inputIcon}
+            />
             <TextInput
               style={styles.input}
               placeholder="Borç Miktarı (TL)"
               value={formData.debtStatus}
-              onChangeText={(value) => updateField('debtStatus', value)}
+              onChangeText={(value) => updateField("debtStatus", value)}
               keyboardType="numeric"
               placeholderTextColor="#999"
             />
@@ -224,7 +279,12 @@ const AddStudent = ({ navigation }) => {
           ) : (
             <>
               <Text style={styles.submitButtonText}>Öğrenciyi Kaydet</Text>
-              <Ionicons name="checkmark-circle" size={20} color="#fff" style={styles.submitIcon} />
+              <Ionicons
+                name="checkmark-circle"
+                size={20}
+                color="#fff"
+                style={styles.submitIcon}
+              />
             </>
           )}
         </TouchableOpacity>
@@ -236,17 +296,17 @@ const AddStudent = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f6fa',
+    backgroundColor: "#f5f6fa",
   },
   header: {
-    backgroundColor: '#6c63ff',
+    backgroundColor: "#6c63ff",
     padding: 20,
-    paddingTop: Platform.OS === 'ios' ? 50 : 20,
-    flexDirection: 'row',
-    alignItems: 'center',
+    paddingTop: Platform.OS === "ios" ? 50 : 20,
+    flexDirection: "row",
+    alignItems: "center",
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    shadowColor: '#6c63ff',
+    shadowColor: "#6c63ff",
     shadowOffset: {
       width: 0,
       height: 4,
@@ -261,8 +321,8 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontWeight: "bold",
+    color: "#fff",
   },
   formContainer: {
     flex: 1,
@@ -273,18 +333,18 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#2d3436',
+    fontWeight: "600",
+    color: "#2d3436",
     marginBottom: 12,
     marginLeft: 4,
   },
   inputWrapper: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -300,18 +360,18 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 50,
     fontSize: 16,
-    color: '#2d3436',
+    color: "#2d3436",
   },
   submitButton: {
-    backgroundColor: '#6c63ff',
+    backgroundColor: "#6c63ff",
     borderRadius: 12,
     height: 55,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 20,
     marginBottom: 40,
-    shadowColor: '#6c63ff',
+    shadowColor: "#6c63ff",
     shadowOffset: {
       width: 0,
       height: 4,
@@ -321,13 +381,20 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   submitButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     marginRight: 8,
   },
   submitIcon: {
     marginLeft: 4,
+  },
+  dateInput: {
+    justifyContent: "center",
+  },
+  dateText: {
+    fontSize: 16,
+    color: "#2d3436",
   },
 });
 
