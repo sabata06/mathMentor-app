@@ -67,7 +67,6 @@ const HomeworkList = ({ route, navigation }) => {
       Alert.alert("Hata", errorMessage);
     }
   };
- 
 
   const deleteHomework = async (homeworkId) => {
     Alert.alert("Onay", "Bu ödevi silmek istediğinize emin misiniz?", [
@@ -94,7 +93,7 @@ const HomeworkList = ({ route, navigation }) => {
   const renderEmptyState = () => (
     <View style={styles.emptyStateContainer}>
       <Image
-        source={require('../../assets/no-homework.webp')}
+        source={require("../../assets/no-homework.webp")}
         style={styles.emptyStateImage}
       />
       <Text style={styles.emptyStateTitle}>Henüz Ödev Yok</Text>
@@ -110,10 +109,12 @@ const HomeworkList = ({ route, navigation }) => {
         style={styles.statusButton}
         onPress={() => toggleHomeworkStatus(item.id, item.is_completed)}
       >
-        <View style={[
-          styles.checkboxContainer,
-          item.is_completed && styles.checkboxCompleted
-        ]}>
+        <View
+          style={[
+            styles.checkboxContainer,
+            item.is_completed && styles.checkboxCompleted,
+          ]}
+        >
           <Ionicons
             name={item.is_completed ? "checkmark" : ""}
             size={16}
@@ -140,7 +141,9 @@ const HomeworkList = ({ route, navigation }) => {
       <View style={styles.actionButtons}>
         <TouchableOpacity
           style={styles.actionButton}
-          onPress={() => navigation.navigate("EditHomework", { homework: item })}
+          onPress={() =>
+            navigation.navigate("EditHomework", { homework: item })
+          }
         >
           <Ionicons name="create-outline" size={22} color="#6c63ff" />
         </TouchableOpacity>
@@ -218,12 +221,12 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   homeworkCard: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -273,32 +276,32 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#6c63ff',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderColor: "#6c63ff",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
   },
 
   checkboxCompleted: {
-    backgroundColor: '#6c63ff',
+    backgroundColor: "#6c63ff",
   },
 
   bookTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#2d3436',
+    fontWeight: "600",
+    color: "#2d3436",
     marginBottom: 8,
   },
 
   detailsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 8,
     marginBottom: 4,
   },
 
   tagContainer: {
-    backgroundColor: '#f0f1f7',
+    backgroundColor: "#f0f1f7",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
@@ -306,7 +309,7 @@ const styles = StyleSheet.create({
 
   tagText: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
   },
 
   actionButton: {
@@ -315,8 +318,8 @@ const styles = StyleSheet.create({
 
   emptyStateContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 40,
   },
 
@@ -328,15 +331,15 @@ const styles = StyleSheet.create({
 
   emptyStateTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#2d3436',
+    fontWeight: "bold",
+    color: "#2d3436",
     marginBottom: 8,
   },
 
   emptyStateDescription: {
     fontSize: 14,
-    color: '#636e72',
-    textAlign: 'center',
+    color: "#636e72",
+    textAlign: "center",
     lineHeight: 20,
   },
 });
