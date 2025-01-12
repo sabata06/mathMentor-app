@@ -11,6 +11,7 @@ import {
   Platform,
   Animated,
   Alert,
+  TextInput,
 } from "react-native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -20,6 +21,8 @@ const StudentList = ({ navigation }) => {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredStudents, setFilteredStudents] = useState([]);
   const scrollY = new Animated.Value(0);
 
   const fetchStudents = async () => {
@@ -33,8 +36,9 @@ const StudentList = ({ navigation }) => {
           },
         }
       );
-      console.log(response.data);
+      // console.log(response.data);
       setStudents(response.data);
+      setFilteredStudents(response.data);
     } catch (error) {
       console.error("Error fetching students:", error);
       Alert.alert("Hata", "Öğrenci listesi yüklenirken bir hata oluştu.");
@@ -74,6 +78,17 @@ const StudentList = ({ navigation }) => {
     );
   };
 
+  const handleSearch = (text) => {
+    setSearchQuery(text);
+    const filtered = students.filter(
+      (student) =>
+        student.name.toLowerCase().includes(text.toLowerCase()) ||
+        student.surname.toLowerCase().includes(text.toLowerCase()) ||
+        student.parent_name.toLowerCase().includes(text.toLowerCase())
+    );
+    setFilteredStudents(filtered);
+  };
+
   useEffect(() => {
     fetchStudents();
   }, []);
@@ -85,8 +100,8 @@ const StudentList = ({ navigation }) => {
 
   const headerHeight = scrollY.interpolate({
     inputRange: [0, 100],
-    outputRange: [Platform.OS === 'ios' ? 140 : 120, 80],
-    extrapolate: 'clamp',
+    outputRange: [Platform.OS === "ios" ? 140 : 120, 80],
+    extrapolate: "clamp",
   });
 
   const renderStudentItem = ({ item }) => {
@@ -94,9 +109,13 @@ const StudentList = ({ navigation }) => {
       <View style={styles.studentCard}>
         <TouchableOpacity
           style={styles.studentContent}
-          onPress={() => navigation.navigate("StudentDetail", { studentId: item.id })}
+          onPress={() =>
+            navigation.navigate("StudentDetail", { studentId: item.id })
+          }
         >
-          <View style={[styles.avatarContainer, { backgroundColor: '#6c63ff' }]}>
+          <View
+            style={[styles.avatarContainer, { backgroundColor: "#6c63ff" }]}
+          >
             <Text style={styles.avatarText}>
               {item.name[0]}
               {item.surname[0]}
@@ -110,23 +129,31 @@ const StudentList = ({ navigation }) => {
               <Text style={styles.parentLabel}>Veli: </Text>
               {item.parent_name}
             </Text>
-            <View style={[
-              styles.debtBadge,
-              { backgroundColor: item.debt_status > 0 ? '#fff0f0' : '#f0fff4' }
-            ]}>
-              <Text style={[
-                styles.debtText,
-                { color: item.debt_status > 0 ? '#e74c3c' : '#2ecc71' }
-              ]}>
-                {item.debt_status > 0 
+            <View
+              style={[
+                styles.debtBadge,
+                {
+                  backgroundColor: item.debt_status > 0 ? "#fff0f0" : "#f0fff4",
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.debtText,
+                  { color: item.debt_status > 0 ? "#e74c3c" : "#2ecc71" },
+                ]}
+              >
+                {item.debt_status > 0
                   ? `${item.debt_status} TL borç`
-                  : 'Borç yok'}
+                  : "Borç yok"}
               </Text>
             </View>
           </View>
           <TouchableOpacity
             style={styles.deleteButton}
-            onPress={() => handleDeleteStudent(item.id, `${item.name} ${item.surname}`)}
+            onPress={() =>
+              handleDeleteStudent(item.id, `${item.name} ${item.surname}`)
+            }
           >
             <Ionicons name="trash-outline" size={22} color="#ff6b6b" />
           </TouchableOpacity>
@@ -160,8 +187,32 @@ const StudentList = ({ navigation }) => {
         </View>
       </Animated.View>
 
+      <View style={styles.searchContainer}>
+        <Ionicons
+          name="search-outline"
+          size={20}
+          color="#666"
+          style={styles.searchIcon}
+        />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Öğrenci veya veli ara..."
+          value={searchQuery}
+          onChangeText={handleSearch}
+          placeholderTextColor="#666"
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity
+            onPress={() => handleSearch("")}
+            style={styles.clearButton}
+          >
+            <Ionicons name="close-circle" size={20} color="#666" />
+          </TouchableOpacity>
+        )}
+      </View>
+
       <FlatList
-        data={students}
+        data={filteredStudents}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderStudentItem}
         contentContainerStyle={styles.listContainer}
@@ -204,7 +255,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#6c63ff",
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    paddingTop: Platform.OS === 'ios' ? 50 : 20,
+    paddingTop: Platform.OS === "ios" ? 50 : 20,
     shadowColor: "#6c63ff",
     shadowOffset: {
       width: 0,
@@ -216,15 +267,16 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingBottom: 15,
-    justifyContent: "space-between",
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: "bold",
     color: "#fff",
-    marginBottom: 15,
   },
   addButton: {
     flexDirection: "row",
@@ -233,7 +285,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 12,
-    alignSelf: "flex-start",
   },
   addButtonText: {
     color: "#fff",
@@ -306,6 +357,37 @@ const styles = StyleSheet.create({
   deleteButton: {
     padding: 8,
     marginLeft: 8,
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    margin: 16,
+    marginTop: 10,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    marginLeft: 8,
+    color: "#2d3436",
+    paddingVertical: 8,
+  },
+  searchIcon: {
+    marginRight: 4,
+  },
+  clearButton: {
+    padding: 4,
   },
 });
 

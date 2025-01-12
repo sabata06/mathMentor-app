@@ -23,7 +23,7 @@ const StudentDetail = ({ route, navigation }) => {
     right: 20,
     bottom: 20,
     flexDirection: "row",
-    gap: 10,
+    gap: 15,
   };
 
   useEffect(() => {
@@ -36,7 +36,7 @@ const StudentDetail = ({ route, navigation }) => {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        console.log(response.data);
+        // console.log(response.data);
         setStudent(response.data);
       } catch (error) {
         console.error("Error fetching student details:", error);
@@ -184,16 +184,20 @@ const StudentDetail = ({ route, navigation }) => {
             })
           }
         >
-          <Ionicons name="book" size={24} color="#fff" />
-          <Text style={styles.buttonText}>Ödevler</Text>
+          <View style={styles.buttonContent}>
+            <Ionicons name="book" size={22} color="#fff" />
+            <Text style={styles.buttonText}>Ödevler</Text>
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.floatingButton, { backgroundColor: "#6c63ff" }]}
           onPress={() => navigation.navigate("EditStudent", { student })}
         >
-          <Ionicons name="create" size={24} color="#fff" />
-          <Text style={styles.buttonText}>Düzenle</Text>
+          <View style={styles.buttonContent}>
+            <Ionicons name="create" size={22} color="#fff" />
+            <Text style={styles.buttonText}>Düzenle</Text>
+          </View>
         </TouchableOpacity>
       </View>
     </View>
@@ -327,30 +331,28 @@ const styles = StyleSheet.create({
     color: "#2d3436",
     fontWeight: "500",
   },
-  floatingEditButton: {
-    position: "absolute",
-    right: 20,
-    bottom: 20,
-    backgroundColor: "#6c63ff",
-    borderRadius: 12,
-    flexDirection: "row",
-    alignItems: "center",
+  floatingButton: {
+    borderRadius: 25,
     paddingVertical: 12,
     paddingHorizontal: 20,
-    shadowColor: "#6c63ff",
+    elevation: 6,
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 3,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 8,
+    shadowOpacity: 0.27,
+    shadowRadius: 4.65,
   },
-  editButtonText: {
+  buttonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  buttonText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "600",
-    marginLeft: 8,
   },
 });
 

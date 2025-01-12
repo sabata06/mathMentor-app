@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   StatusBar,
   Platform,
+  Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -89,23 +90,48 @@ const HomeworkList = ({ route, navigation }) => {
       },
     ]);
   };
+
+  const renderEmptyState = () => (
+    <View style={styles.emptyStateContainer}>
+      <Image
+        source={require('../../assets/no-homework.webp')}
+        style={styles.emptyStateImage}
+      />
+      <Text style={styles.emptyStateTitle}>Henüz Ödev Yok</Text>
+      <Text style={styles.emptyStateDescription}>
+        Öğrenciye yeni ödev eklemek için sağ üst köşedeki + butonuna tıklayın
+      </Text>
+    </View>
+  );
+
   const renderHomeworkItem = ({ item }) => (
     <View style={styles.homeworkCard}>
       <TouchableOpacity
         style={styles.statusButton}
         onPress={() => toggleHomeworkStatus(item.id, item.is_completed)}
       >
-        <Ionicons
-          name={item.is_completed ? "checkbox" : "square-outline"}
-          size={24}
-          color={item.is_completed ? "#4CAF50" : "#666"}
-        />
+        <View style={[
+          styles.checkboxContainer,
+          item.is_completed && styles.checkboxCompleted
+        ]}>
+          <Ionicons
+            name={item.is_completed ? "checkmark" : ""}
+            size={16}
+            color="#fff"
+          />
+        </View>
       </TouchableOpacity>
 
       <View style={styles.homeworkInfo}>
         <Text style={styles.bookTitle}>{item.book}</Text>
-        <Text style={styles.topic}>Konu: {item.topic}</Text>
-        <Text style={styles.page}>Sayfa: {item.page}</Text>
+        <View style={styles.detailsContainer}>
+          <View style={styles.tagContainer}>
+            <Text style={styles.tagText}>{item.topic}</Text>
+          </View>
+          <View style={styles.tagContainer}>
+            <Text style={styles.tagText}>Sayfa: {item.page}</Text>
+          </View>
+        </View>
         <Text style={styles.dateAdded}>
           {new Date(item.date_added).toLocaleDateString("tr-TR")}
         </Text>
@@ -113,14 +139,16 @@ const HomeworkList = ({ route, navigation }) => {
 
       <View style={styles.actionButtons}>
         <TouchableOpacity
-          onPress={() =>
-            navigation.navigate("EditHomework", { homework: item })
-          }
+          style={styles.actionButton}
+          onPress={() => navigation.navigate("EditHomework", { homework: item })}
         >
-          <Ionicons name="create-outline" size={24} color="#6c63ff" />
+          <Ionicons name="create-outline" size={22} color="#6c63ff" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => deleteHomework(item.id)}>
-          <Ionicons name="trash-outline" size={24} color="#ff4444" />
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={() => deleteHomework(item.id)}
+        >
+          <Ionicons name="trash-outline" size={22} color="#ff4444" />
         </TouchableOpacity>
       </View>
     </View>
@@ -159,6 +187,7 @@ const HomeworkList = ({ route, navigation }) => {
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
+          ListEmptyComponent={renderEmptyState}
         />
       )}
     </View>
@@ -189,17 +218,20 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   homeworkCard: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
+    backgroundColor: '#fff',
+    borderRadius: 16,
     padding: 16,
     marginBottom: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    elevation: 3,
+    flexDirection: 'row',
+    alignItems: 'center',
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
     shadowOpacity: 0.1,
-    shadowRadius: 3,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   statusButton: {
     marginRight: 12,
@@ -235,6 +267,77 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#95a5a6",
     marginTop: 4,
+  },
+  checkboxContainer: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#6c63ff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+
+  checkboxCompleted: {
+    backgroundColor: '#6c63ff',
+  },
+
+  bookTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#2d3436',
+    marginBottom: 8,
+  },
+
+  detailsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 4,
+  },
+
+  tagContainer: {
+    backgroundColor: '#f0f1f7',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+
+  tagText: {
+    fontSize: 12,
+    color: '#666',
+  },
+
+  actionButton: {
+    padding: 8,
+  },
+
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+
+  emptyStateImage: {
+    width: 200,
+    height: 200,
+    marginBottom: 20,
+  },
+
+  emptyStateTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#2d3436',
+    marginBottom: 8,
+  },
+
+  emptyStateDescription: {
+    fontSize: 14,
+    color: '#636e72',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
 
