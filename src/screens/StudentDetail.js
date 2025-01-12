@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   StatusBar,
   Platform,
+  Alert,
+  Linking,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
@@ -104,7 +106,43 @@ const StudentDetail = ({ route, navigation }) => {
             <View style={styles.infoRow}>
               <Ionicons name="call-outline" size={20} color="#6c63ff" />
               <Text style={styles.infoLabel}>İletişim:</Text>
-              <Text style={styles.infoValue}>{student.parent_contact}</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  Alert.alert(
+                    "İletişim Seçenekleri",
+                    "Nasıl iletişim kurmak istersiniz?",
+                    [
+                      {
+                        text: "Ara",
+                        onPress: () => {
+                          Linking.openURL(`tel:${student.parent_contact}`);
+                        },
+                      },
+                      {
+                        text: "WhatsApp",
+                        onPress: () => {
+                          // WhatsApp numarayı uluslararası formatta bekler, bu yüzden +90 ekliyoruz
+                          let phoneNumber = student.parent_contact;
+                          if (phoneNumber.startsWith("0")) {
+                            phoneNumber = phoneNumber.substring(1);
+                          }
+                          Linking.openURL(
+                            `whatsapp://send?phone=90${phoneNumber}`
+                          );
+                        },
+                      },
+                      {
+                        text: "İptal",
+                        style: "cancel",
+                      },
+                    ]
+                  );
+                }}
+              >
+                <Text style={[styles.infoValue, styles.phoneLink]}>
+                  {student.parent_contact}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -353,6 +391,10 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 15,
     fontWeight: "600",
+  },
+  phoneLink: {
+    color: "#6c63ff",
+    textDecorationLine: "underline",
   },
 });
 
